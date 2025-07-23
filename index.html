@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卦象之盘</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        #startScreen {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 600px;
+        }
+
+        #gameTitle {
+            color: #fff; /* 改为白色文字 */
+            font-size: 4.5em;
+            font-weight: bold;
+            margin: 20px 0 40px;
+            letter-spacing: 3px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .main-button {
+            padding: 18px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(145deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(145deg, #66BB6A, #388E3C);
+        }
+
+        .main-button:active {
+            transform: translateY(0);
+        }
+
+        .main-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(25deg);
+            transition: all 0.6s;
+        }
+
+        .main-button:hover::after {
+            left: 120%;
+        }
+
+        #playlistModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #1e3c72, #2a5298);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            color: white;
+        }
+
+        #playlistModal h2 {
+            margin-top: 0;
+            color: #FFD700;
+            font-size: 2em;
+            margin-bottom: 25px;
+        }
+
+        #playlistInput {
+            width: 90%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        #playlistInput::placeholder {
+            color: #888;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-button {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        #confirmPlaylist {
+            background: linear-gradient(145deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        #cancelPlaylist {
+            background: linear-gradient(145deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #historyButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #FFD700;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        #historyButton:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        #winCounter {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-family: monospace;
+            font-size: 24px;
+            padding: 12px 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            z-index: 100;
+        }
+
+        #historyModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #1a237e, #283593);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            max-width: 350px;
+            width: 90%;
+            color: white;
+        }
+
+        #historyModal h2 {
+            margin-top: 0;
+            color: #FFD700;
+            text-align: center;
+        }
+
+        .history-item {
+            margin: 12px 0;
+            font-family: monospace;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        #gameInterface {
+            display: none;
+        }
+
+        table {
+            table-layout: fixed;
+            width: 80vmin;
+            height: 80vmin;
+            border-collapse: collapse;
+            margin: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        td {
+            width: calc(100% / 9);
+            height: calc(100% / 9);
+            position: relative;
+            border: 2px solid #444;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 0;
+            background: #f8f8f8;
+        }
+
+        .cell-content {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            gap: 1vmin;
+            background: #fff;
+            border-radius: 5px;
+        }
+
+        .yao {
+            font-size: 2.5vmin;
+            line-height: 0.8;
+            transform: scale(0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #333;
+            font-weight: bold;
+        }
+
+        td.selected {
+            background-color: #FFEB3B;
+            transform: scale(0.95);
+            box-shadow: inset 0 0 15px rgba(255, 152, 0, 0.8);
+        }
+
+        /* 新增底部状态栏 */
+        #bottomBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        #timer {
+            font-family: monospace;
+            font-size: 24px;
+            color: #FFD700;
+            margin: 0;
+            flex: 0 0 auto; /* 不伸缩 */
+        }
+
+        #status {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            color: #FFD700;
+            text-align: center;
+            flex: 1; /* 占据中间空间 */
+            margin: 0;
+            padding: 0 10px;
+        }
+
+        #successOverlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #1e3c72, #2a5298);
+            padding: 40px 60px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        #successText {
+            font-size: 2.5em;
+            color: #FFD700;
+            font-weight: bold;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #successTime {
+            font-size: 1.5em;
+            color: #fff;
+            font-family: monospace;
+            display: block;
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #currentProblem {
+            position: fixed;
+            top: 90px;
+            left: 20px;
+            font-family: monospace;
+            font-size: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            z-index: 100;
+        }
+
+        #playlistCompletion {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #1e3c72, #2a5298);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            width: 90%;
+            max-width: 700px;
+            color: white;
+        }
+
+        #playlistCompletion h2 {
+            font-size: 2.5em;
+            color: #FFD700;
+            margin-top: 0;
+        }
+
+        #completedProblems {
+            font-size: 1.8em;
+            margin: 30px 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            font-family: monospace;
+        }
+
+        .close-button {
+            padding: 12px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(145deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .close-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #problemIdDisplay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: monospace;
+            font-size: 24px;
+            padding: 12px 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            z-index: 100;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            #gameTitle {
+                font-size: 3.5em;
+            }
+            
+            .main-button {
+                padding: 15px 30px;
+                font-size: 1.3em;
+            }
+            
+            #winCounter, #problemIdDisplay {
+                font-size: 18px;
+                padding: 10px 15px;
+            }
+            
+            #timer, #status {
+                font-size: 16px;
+            }
+            
+            table {
+                width: 95vmin;
+                height: 95vmin;
+                margin-bottom: 50px; /* 为底部状态栏留出空间 */
+            }
+            
+            #successText {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #gameTitle {
+                font-size: 2.8em;
+                margin: 10px 0 30px;
+            }
+            
+            .main-button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+            
+            #winCounter, #problemIdDisplay {
+                font-size: 16px;
+                padding: 8px 12px;
+            }
+            
+            #timer, #status {
+                font-size: 14px;
+            }
+            
+            .yao {
+                font-size: 3.5vmin;
+            }
+            
+            #bottomBar {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="winCounter">正确局数：0</div>
+    <div id="problemIdDisplay">题号：0000</div>
+    <button id="historyButton">⏰</button>
+    <div id="historyModal">
+        <h2>历史记录</h2>
+        <div class="history-item" id="bestTime">最佳成绩：无</div>
+        <div id="historyList"></div>
+    </div>
+
+    <div id="playlistModal">
+        <h2>制作题单</h2>
+        <p>请输入0-9999之间的题号，多个题号用空格分隔</p>
+        <input type="text" id="playlistInput" placeholder="例如: 1234 0211 0012">
+        <div class="modal-buttons">
+            <button class="modal-button" id="confirmPlaylist">确定</button>
+            <button class="modal-button" id="cancelPlaylist">取消</button>
+        </div>
+    </div>
+
+    <div id="successOverlay">
+        <div id="successContent">
+            <div id="successText">恭喜作答成功！<br><span id="successTime"></span></div>
+        </div>
+    </div>
+
+    <div id="playlistCompletion">
+        <h2>恭喜你已完成所有题目！</h2>
+        <p>题号如下：</p>
+        <div id="completedProblems"></div>
+        <button class="close-button" id="closeCompletion">关闭</button>
+    </div>
+
+    <div id="startScreen">
+        <h1 id="gameTitle">卦象之盘</h1>
+        <div class="button-container">
+            <button id="startButton" class="main-button">开始游戏</button>
+            <button id="createPlaylist" class="main-button">制作题单</button>
+        </div>
+    </div>
+
+    <div id="gameInterface">
+        <div id="bottomBar">
+            <div id="timer">00:00</div>
+            <div id="status">点击两个格子进行交换</div>
+        </div>
+        <table id="grid"></table>
+    </div>
+
+    <script>
+        const GRID_SIZE = 8;
+        const guaList = [
+            ['⚋', '⚋', '⚊'], ['⚋', '⚊', '⚋'],
+            ['⚊', '⚋', '⚋'], ['⚊', '⚊', '⚋'],
+            ['⚊', '⚋', '⚊'], ['⚋', '⚊', '⚊'],
+            ['⚊', '⚊', '⚊'], ['⚋', '⚋', '⚋']
+        ];
+
+        let selectedCells = [];
+        let solution;
+        let timerInterval;
+        let elapsedTime = 0;
+        let winCount = 0;
+        let gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+        let bestTime = localStorage.getItem('bestTime') || Infinity;
+        let currentProblemId = 0;
+        let currentPlaylist = [];
+        let currentPlaylistIndex = -1;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWinCounter();
+            updateBestTime();
+        });
+
+        // 可播种的随机数生成器
+        function seededRandom(seed) {
+            return function() {
+                seed = (seed * 9301 + 49297) % 233280;
+                return seed / 233280;
+            };
+        }
+
+        function initGame(problemId) {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameInterface').style.display = 'block';
+            document.getElementById('problemIdDisplay').style.display = 'block';
+            document.getElementById('problemIdDisplay').textContent = `题号：${problemId.toString().padStart(4, '0')}`;
+            
+            currentProblemId = problemId;
+            
+            clearInterval(timerInterval);
+            elapsedTime = 0;
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('status').textContent = '点击两个格子进行交换';
+            
+            // 使用题号作为随机种子
+            const randomFunc = seededRandom(problemId);
+            
+            solution = generateValidGrid(randomFunc);
+            const shuffledGrid = shuffleGrid(solution, randomFunc);
+            renderGrid(shuffledGrid);
+            
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function startRandomGame() {
+            const randomProblemId = Math.floor(Math.random() * 10000);
+            currentPlaylist = [];
+            currentPlaylistIndex = -1;
+            initGame(randomProblemId);
+        }
+
+        function createPlaylist() {
+            document.getElementById('playlistModal').style.display = 'block';
+        }
+
+        function confirmPlaylist() {
+            const input = document.getElementById('playlistInput').value.trim();
+            if (!input) {
+                alert('请输入题号！');
+                return;
+            }
+            
+            const problemIds = input.split(/\s+/)
+                .map(id => parseInt(id))
+                .filter(id => !isNaN(id) && id >= 0 && id <= 9999);
+            
+            if (problemIds.length === 0) {
+                alert('请输入有效的题号（0-9999）！');
+                return;
+            }
+            
+            currentPlaylist = problemIds;
+            currentPlaylistIndex = 0;
+            
+            document.getElementById('playlistModal').style.display = 'none';
+            document.getElementById('playlistInput').value = '';
+            
+            initGame(currentPlaylist[0]);
+        }
+
+        function nextProblemInPlaylist() {
+            currentPlaylistIndex++;
+            
+            if (currentPlaylistIndex < currentPlaylist.length) {
+                initGame(currentPlaylist[currentPlaylistIndex]);
+            } else {
+                showPlaylistCompletion();
+            }
+        }
+
+        function showPlaylistCompletion() {
+            document.getElementById('completedProblems').textContent = currentPlaylist.join(', ');
+            document.getElementById('playlistCompletion').style.display = 'block';
+        }
+
+        function closePlaylistCompletion() {
+            document.getElementById('playlistCompletion').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            document.getElementById('gameInterface').style.display = 'none';
+            document.getElementById('problemIdDisplay').style.display = 'none';
+        }
+
+        function updateWinCounter() {
+            winCount = gameHistory.length;
+            document.getElementById('winCounter').textContent = `正确局数：${winCount}`;
+        }
+
+        function updateBestTime() {
+            const bestTimeElement = document.getElementById('bestTime');
+            if (bestTime === Infinity) {
+                bestTimeElement.textContent = '最佳成绩：无';
+            } else {
+                bestTimeElement.textContent = `最佳成绩：${formatTime(bestTime)}`;
+            }
+        }
+
+        function showHistory() {
+            const modal = document.getElementById('historyModal');
+            const historyList = document.getElementById('historyList');
+            
+            updateBestTime();
+            
+            historyList.innerHTML = gameHistory
+                .slice().reverse().slice(0, 8)
+                .map((time, index) => 
+                    `<div class="history-item">${formatTime(time)}</div>`
+                )
+                .join('');
+            
+            modal.style.display = 'block';
+            setTimeout(() => modal.style.display = 'none', 5000);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        // 事件监听器
+        document.getElementById('startButton').addEventListener('click', startRandomGame);
+        document.getElementById('createPlaylist').addEventListener('click', createPlaylist);
+        document.getElementById('confirmPlaylist').addEventListener('click', confirmPlaylist);
+        document.getElementById('cancelPlaylist').addEventListener('click', () => {
+            document.getElementById('playlistModal').style.display = 'none';
+        });
+        document.getElementById('historyButton').addEventListener('click', showHistory);
+        document.getElementById('closeCompletion').addEventListener('click', closePlaylistCompletion);
+        document.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('historyModal') || 
+                e.target === document.getElementById('playlistModal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        function checkWin(grid) {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if ((col < GRID_SIZE-1 && !isCompatible(grid[row][col], grid[row][col+1])) ||
+                        (row < GRID_SIZE-1 && !isCompatible(grid[row][col], grid[row+1][col]))) {
+                        return false;
+                    }
+                }
+            }
+            
+            clearInterval(timerInterval);
+            winCount++;
+            gameHistory.push(elapsedTime);
+            
+            if (elapsedTime < bestTime) bestTime = elapsedTime;
+            
+            localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
+            localStorage.setItem('bestTime', bestTime);
+            
+            updateWinCounter();
+            
+            const overlay = document.getElementById('successOverlay');
+            document.getElementById('successText').innerHTML = `
+                恭喜作答成功！<br>
+                <span id="successTime">用时：${formatTime(elapsedTime)}</span>
+            `;
+            overlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                
+                if (currentPlaylist.length > 0 && currentPlaylistIndex < currentPlaylist.length - 1) {
+                    setTimeout(nextProblemInPlaylist, 500);
+                } else if (currentPlaylist.length > 0) {
+                    setTimeout(showPlaylistCompletion, 500);
+                } else {
+                    document.getElementById('startScreen').style.display = 'flex';
+                    document.getElementById('gameInterface').style.display = 'none';
+                    document.getElementById('problemIdDisplay').style.display = 'none';
+                }
+            }, 2500);
+
+            return true;
+        }
+
+        function isCompatible(g1, g2) {
+            let count = 0;
+            for (let i = 0; i < 3; i++) count += g1[i] === g2[i] ? 1 : 0;
+            return count === 1;
+        }
+
+        function generateValidGrid(randomFunc = Math.random) {
+            let grid;
+            do {
+                grid = [];
+                for (let row = 0; row < GRID_SIZE; row++) {
+                    grid[row] = [];
+                    for (let col = 0; col < GRID_SIZE; col++) {
+                        let candidates = guaList.filter(g => {
+                            if (col > 0 && !isCompatible(g, grid[row][col-1])) return false;
+                            if (row > 0 && !isCompatible(g, grid[row-1][col])) return false;
+                            return true;
+                        });
+                        if (candidates.length === 0) break;
+                        grid[row][col] = candidates[Math.floor(randomFunc() * candidates.length)];
+                    }
+                    if (grid[row].length < GRID_SIZE) break;
+                }
+            } while (grid.flat().length !== GRID_SIZE * GRID_SIZE);
+            return grid;
+        }
+
+        function generatePermutation(length, randomFunc) {
+            const arr = Array.from({length}, (_, i) => i);
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(randomFunc() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function shuffleGrid(grid, randomFunc = Math.random) {
+            let flat = grid.flat();
+            const TOTAL = GRID_SIZE * GRID_SIZE;
+            for (let n = 0; n < 5; n++) {
+                const perm = generatePermutation(TOTAL, randomFunc);
+                const newFlat = new Array(TOTAL);
+                for (let i = 0; i < TOTAL; i++) newFlat[i] = flat[perm[i]];
+                flat = newFlat;
+            }
+            return Array.from({length: GRID_SIZE}, (_, i) => flat.slice(i*GRID_SIZE, (i+1)*GRID_SIZE));
+        }
+
+        function renderGrid(grid) {
+            const table = document.getElementById('grid');
+            table.innerHTML = '';
+            grid.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                row.forEach((cell, colIndex) => {
+                    const td = document.createElement('td');
+                    const container = document.createElement('div');
+                    container.className = 'cell-content';
+                    cell.forEach(yao => {
+                        const div = document.createElement('div');
+                        div.className = 'yao';
+                        div.textContent = yao;
+                        container.appendChild(div);
+                    });
+                    td.appendChild(container);
+                    td.dataset.row = rowIndex;
+                    td.dataset.col = colIndex;
+                    td.addEventListener('click', handleCellClick);
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+        }
+
+        function handleCellClick(e) {
+            const td = e.target.closest('td');
+            if (!td) return;
+
+            const row = parseInt(td.dataset.row);
+            const col = parseInt(td.dataset.col);
+
+            if (td.classList.contains('selected')) {
+                td.classList.remove('selected');
+                selectedCells = selectedCells.filter(c => !(c.row === row && c.col === col));
+            } else {
+                if (selectedCells.length >= 2) return;
+                td.classList.add('selected');
+                selectedCells.push({ row, col });
+            }
+
+            if (selectedCells.length === 2) {
+                const [first, second] = selectedCells;
+                const currentGrid = getCurrentGrid();
+                [currentGrid[first.row][first.col], currentGrid[second.row][second.col]] = 
+                    [currentGrid[second.row][second.col], currentGrid[first.row][first.col]];
+                renderGrid(currentGrid);
+                checkWin(currentGrid);
+                setTimeout(() => {
+                    selectedCells = [];
+                    document.querySelectorAll('.selected').forEach(t => t.classList.remove('selected'));
+                }, 100);
+            }
+        }
+
+        function getCurrentGrid() {
+            return Array.from(document.querySelectorAll('#grid tr')).map(tr => 
+                Array.from(tr.querySelectorAll('td')).map(td => 
+                    Array.from(td.querySelectorAll('.yao')).map(div => div.textContent)
+                )
+            );
+        }
+
+        function updateTimer() {
+            elapsedTime++;
+            document.getElementById('timer').textContent = formatTime(elapsedTime);
+        }
+    </script>
+</body>
+</html>
